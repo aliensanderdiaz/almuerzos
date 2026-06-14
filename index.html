@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Productos</title>
+
+<style>
+  body {
+    font-family: Arial;
+    margin: 0;
+    background: #f5f5f5;
+  }
+
+  h1 {
+    text-align: center;
+    padding: 15px;
+  }
+
+  .lista {
+    padding: 10px;
+    padding-bottom: 100px;
+  }
+
+  .item {
+    background: white;
+    margin-bottom: 10px;
+    padding: 15px;
+    border-radius: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+
+  .nombre {
+    font-weight: bold;
+  }
+
+  .precio {
+    font-size: 12px;
+    color: gray;
+  }
+
+  .cantidad {
+    font-size: 20px;
+    font-weight: bold;
+  }
+
+  .total-box {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background: #d1fae5;
+    text-align: center;
+    padding: 15px;
+  }
+
+  .total {
+    font-size: 28px;
+    font-weight: bold;
+  }
+</style>
+</head>
+
+<body>
+
+<h1>Productos</h1>
+<div class="lista" id="lista"></div>
+
+<div class="total-box">
+  <div>Total</div>
+  <div class="total" id="total">$0</div>
+</div>
+
+<script>
+const productos = [
+  { nombre: "Almuerzo", precio: 18000, cantidad: 0 },
+  { nombre: "Almuerzo para llevar", precio: 19000, cantidad: 0 },
+  { nombre: "Sopa", precio: 6000, cantidad: 0 },
+  { nombre: "Sopa para llevar", precio: 6500, cantidad: 0 },
+  { nombre: "Desechable", precio: 500, cantidad: 0 },
+  { nombre: "Porción proteína", precio: 11000, cantidad: 0 },
+  { nombre: "Porción arroz", precio: 3000, cantidad: 0 },
+  { nombre: "Gaseosa personal", precio: 4000, cantidad: 0 },
+  { nombre: "Gaseosa litro", precio: 8000, cantidad: 0 }
+];
+
+const lista = document.getElementById("lista");
+
+function render() {
+  lista.innerHTML = "";
+
+  productos.forEach((p) => {
+    const item = document.createElement("div");
+    item.className = "item";
+
+    let startX = 0;
+
+    item.addEventListener("touchstart", (e) => {
+      startX = e.touches[0].clientX;
+    });
+
+    item.addEventListener("touchend", (e) => {
+      const endX = e.changedTouches[0].clientX;
+      const diff = endX - startX;
+
+      if (diff > 50) {
+        p.cantidad++;
+      } else if (diff < -50) {
+        p.cantidad--;
+        if (p.cantidad < 0) p.cantidad = 0;
+      }
+
+      render();
+    });
+
+    item.innerHTML = `
+      <div>
+        <div class="nombre">${p.nombre}</div>
+        <div class="precio">$${p.precio}</div>
+      </div>
+      <div class="cantidad">${p.cantidad}</div>
+    `;
+
+    lista.appendChild(item);
+  });
+
+  actualizarTotal();
+}
+
+function actualizarTotal() {
+  let total = 0;
+  productos.forEach(p => total += p.precio * p.cantidad);
+  document.getElementById("total").innerText = "$" + total;
+}
+
+render();
+</script>
+
+</body>
+</html>
