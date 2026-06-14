@@ -12,9 +12,25 @@
     background: #f5f5f5;
   }
 
-  h1 {
-    text-align: center;
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     padding: 15px;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 22px;
+  }
+
+  .reset-btn {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 12px;
   }
 
   .lista {
@@ -65,7 +81,11 @@
 
 <body>
 
-<h1>Productos</h1>
+<div class="header">
+  <h1>Productos</h1>
+  <button class="reset-btn" onclick="resetear()">Reset</button>
+</div>
+
 <div class="lista" id="lista"></div>
 
 <div class="total-box">
@@ -133,6 +153,11 @@ function actualizarTotal() {
   let total = 0;
   productos.forEach(p => total += p.precio * p.cantidad);
   document.getElementById("total").innerText = "$" + total;
+}
+
+function resetear() {
+  productos.forEach(p => p.cantidad = 0);
+  render();
 }
 
 render();
