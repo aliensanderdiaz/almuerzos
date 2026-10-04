@@ -4,17 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Caja Restaurante</title>
+    <title>Caja Restaurante V3</title>
     <style>
         * {
             box-sizing: border-box
         }
 
         body {
-            font-family: Arial;
+            font-family: Arial, sans-serif;
             margin: 0;
-            background: #f5f5f5;
-            padding-bottom: 140px
+            background: #f4f4f4;
+            padding-bottom: 120px
         }
 
         .header {
@@ -22,16 +22,18 @@
             top: 0;
             background: #fff;
             padding: 12px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, .1)
+            box-shadow: 0 2px 6px rgba(0, 0, 0, .1);
+            display: flex;
+            justify-content: space-between
         }
 
-        .item,
-        .card {
+        .card,
+        .item {
             background: #fff;
             margin: 10px;
-            padding: 15px;
+            padding: 14px;
             border-radius: 14px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, .08)
+            box-shadow: 0 1px 4px rgba(0, 0, 0, .08)
         }
 
         .item {
@@ -41,19 +43,19 @@
         }
 
         .cantidad {
-            font-size: 24px;
+            font-size: 28px;
             font-weight: bold;
             color: #16a34a
         }
 
-        .totalbox {
+        .totalbar {
             position: fixed;
             left: 0;
             right: 0;
             bottom: 0;
             background: #fff;
             padding: 10px;
-            box-shadow: 0 -2px 5px rgba(0, 0, 0, .1)
+            box-shadow: 0 -2px 6px rgba(0, 0, 0, .1)
         }
 
         button {
@@ -61,6 +63,14 @@
             border-radius: 10px;
             padding: 12px;
             font-weight: bold
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            margin: 6px 0
         }
 
         .btn {
@@ -74,136 +84,126 @@
             color: #fff
         }
 
+        .secondary {
+            background: #2563eb;
+            color: #fff
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .5);
+            align-items: center;
+            justify-content: center
+        }
+
+        .modal-content {
+            width: 95%;
+            max-width: 420px;
+            background: #fff;
+            padding: 16px;
+            border-radius: 16px
+        }
+
+        .row {
+            margin-bottom: 10px
+        }
+
         .hist {
-            font-size: 13px;
             border-top: 1px solid #eee;
             padding-top: 8px;
-            margin-top: 8px
+            margin-top: 8px;
+            font-size: 13px
         }
     </style>
 </head>
 
 <body>
-    <div class="header">
-        <h2>🍽️ Caja Restaurante</h2>
+    <div class="header"><b>🍽️ Caja Restaurante V3</b><button class="secondary" onclick="mostrarBases()">⚙️</button>
     </div>
-    <div class="card" id="cardBases">
-        <h3>Bases</h3>
-        <input id="be" type="number" placeholder="Base efectivo"><br><br>
-        <input id="bn" type="number" placeholder="Base Nequi"><br><br>
-        <input id="bo" type="number" placeholder="Base Otros"><br><br>
-        <button onclick="guardarBases()">Guardar bases</button>
+    <div class="card" id="basesCard">
+        <h3>Bases</h3><input id="be" type="number" placeholder="Base efectivo"><input id="bn" type="number"
+            placeholder="Base Nequi"><input id="bo" type="number" placeholder="Base Otros"><button class="secondary"
+            onclick="guardarBases()">Guardar Bases</button>
     </div>
     <div id="lista"></div>
     <div class="card">
-        <h3>Saldos esperados</h3>
-        <div>💵 Efectivo: $<span id="se">0</span></div>
-        <div>📱 Nequi: $<span id="sn">0</span></div>
-        <div>🏦 Otros: $<span id="so">0</span></div>
+        <h3>Saldos Esperados</h3>
+        <div>💵 $<span id="se">0</span></div>
+        <div>📱 $<span id="sn">0</span></div>
+        <div>🏦 $<span id="so">0</span></div>
     </div>
-    <div class="card"><button onclick="exportarCSV()">📥 Exportar CSV</button>
-        <h3>Historial</h3>
+    <div class="card"><button class="secondary" onclick="exportarCSV()">📥 Exportar CSV</button>
         <div id="historial"></div>
     </div>
-    <div class="totalbox">
-        <div style="text-align:center;font-size:28px;font-weight:bold" id="total">$0</div><button class="btn"
-            onclick="cobrar()">COBRAR</button>
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <h3>Cobrar</h3>
+            <div><b>Total: $<span id="mtotal"></span></b></div>
+            <div class="row"><input id="efectivo" type="number" placeholder="Efectivo"></div>
+            <div class="row"><input id="nequi" type="number" placeholder="Nequi"></div>
+            <div class="row"><input id="otros" type="number" placeholder="Otros"></div>
+            <div>Pagado: $<span id="pagado">0</span></div>
+            <div>Pendiente: $<span id="pendiente">0</span></div>
+            <div>Cambio: $<span id="cambio">0</span></div><br><button id="registrarBtn" class="btn" disabled
+                onclick="registrarVenta()">Registrar Venta</button><br><br><button class="danger"
+                onclick="cerrarModal()">Cancelar</button>
+        </div>
+    </div>
+    <div class="totalbar">
+        <div id="total" style="font-size:28px;text-align:center;font-weight:bold">$0</div><button class="btn"
+            onclick="abrirModal()">COBRAR</button>
     </div>
     <script>
-        const productos = [['Almuerzo', 18000], ['Almuerzo para llevar', 19000], ['Sopa', 6000], ['Sopa para llevar', 6500], ['Desechable', 500], ['Porción proteína', 11000], ['Porción arroz', 3000], ['Gaseosa personal', 4000], ['Gaseosa litro', 8000]].map(x => ({ nombre: x[0], precio: x[1], cantidad: 0 }));
+        const productos = [["Almuerzo", 18000], ["Almuerzo para llevar", 19000], ["Sopa", 6000], ["Sopa para llevar", 6500], ["Desechable", 500], ["Porción proteína", 11000], ["Porción arroz", 3000], ["Gaseosa personal", 4000], ["Gaseosa litro", 8000]].map(x => ({ nombre: x[0], precio: x[1], cantidad: 0 }));
         let ventas = JSON.parse(localStorage.getItem('ventas') || '[]');
-        function guardarBases() {
-            localStorage.setItem('be', be.value || 0);
-            localStorage.setItem('bn', bn.value || 0);
-            localStorage.setItem('bo', bo.value || 0);
-            resumen()
-            document.getElementById("cardBases").style.display = "none";
-        } 
-        
-        be.value = localStorage.getItem('be') || 0;
-        bn.value = localStorage.getItem('bn') || 0;
-        bo.value = localStorage.getItem('bo') || 0;
-        function render() {
-            lista.innerHTML = '';
-            productos.forEach(p => {
-                let d = document.createElement('div');
-                d.className = 'item';
-                let s = 0;
-                d.ontouchstart = e => s = e.touches[0].clientX;
-                d.ontouchend = e => {
-                    let df = e.changedTouches[0].clientX - s;
-                    if (df > 50) p.cantidad++;
-                    if (df < -50) p.cantidad = Math.max(0, p.cantidad - 1);
-                    render()
-                };
-                d.innerHTML = '<div><b>' + p.nombre + '</b><br><small>$' + p.precio.toLocaleString() + '</small></div><div class=cantidad>' + p.cantidad + '</div>';
-                lista.appendChild(d)
-            });
-            let t = productos.reduce((a, p) => a + p.precio * p.cantidad, 0);
-            document.getElementById('total').innerText = '$' + t.toLocaleString();
-            historialR();
-        }
-        
-        
-        function totalActual() { return productos.reduce((a, p) => a + p.precio * p.cantidad, 0) }
-        
-        
-        function cobrar() {
-            let total = totalActual();
-            if (!total) return;
-            let e = Number(prompt(`TOTAL: $${total.toLocaleString()}\n\nIngrese efectivo:`, 0) || 0);
-            let n = Number(prompt(`TOTAL: $${total.toLocaleString()}\n\nIngrese Nequi:`, 0) || 0);
-            let o = Number(prompt(`TOTAL: $${total.toLocaleString()}\n\nIngrese Otros:`, 0) || 0);
-            if (e + n + o !== total) {
-                alert('La suma no coincide');
-                return;
+        be.value = localStorage.getItem('be') || ''; bn.value = localStorage.getItem('bn') || ''; bo.value = localStorage.getItem('bo') || '';
+        if (localStorage.getItem('be') !== null) basesCard.style.display = 'none';
 
-            } ventas.push({ id: Date.now(), fecha: new Date().toLocaleString(), total, efectivo: e, nequi: n, otros: o });
-            localStorage.setItem('ventas', JSON.stringify(ventas));
-            productos.forEach(p => p.cantidad = 0);
-            render();
-            resumen()
-        }
-        
-        
-        function resumen() {
-            let e = Number(localStorage.getItem('be') || 0), n = Number(localStorage.getItem('bn') || 0), o = Number(localStorage.getItem('bo') || 0);
-            ventas.forEach(v => {
-                e += v.efectivo;
-                n += v.nequi;
-                o += v.otros
-            });
-            se.innerText = e.toLocaleString();
-            sn.innerText = n.toLocaleString();
-            so.innerText = o.toLocaleString()
-        }
-        
-        
-        function historialR() {
-            historial.innerHTML = '';[...ventas].reverse().forEach(v => {
-                let d = document.createElement('div');
-                d.className = 'hist';
-                d.innerHTML = '<b>' + v.fecha + '</b><br>Total $' + v.total.toLocaleString() + '<br>💵 ' + v.efectivo + ' | 📱 ' + v.nequi + ' | 🏦 ' + v.otros + '<br><button class=danger onclick="eliminar(' + v.id + ')">Eliminar</button>';
-                historial.appendChild(d)
-            })
-        }
-        
-        
-        function eliminar(id) {
-            ventas = ventas.filter(v => v.id !== id);
-            localStorage.setItem('ventas', JSON.stringify(ventas));
-            render();
-            resumen()
-        }
-        
-        
+
+        function guardarBases() { localStorage.setItem('be', be.value || 0); localStorage.setItem('bn', bn.value || 0); localStorage.setItem('bo', bo.value || 0); basesCard.style.display = 'none'; resumen(); }
+
+
+        function mostrarBases() { basesCard.style.display = 'block'; }
+
+
+        function totalActual() { return productos.reduce((a, p) => a + p.precio * p.cantidad, 0) }
+
+
+        function render() { lista.innerHTML = ''; productos.forEach(p => { let d = document.createElement('div'); d.className = 'item'; let x = 0; d.ontouchstart = e => x = e.touches[0].clientX; d.ontouchend = e => { let dif = e.changedTouches[0].clientX - x; if (dif > 50) p.cantidad++; if (dif < -50) p.cantidad = Math.max(0, p.cantidad - 1); render(); }; d.innerHTML = `<div><b>${p.nombre}</b><br><small>$${p.precio.toLocaleString()}</small></div><div class='cantidad'>${p.cantidad}</div>`; lista.appendChild(d); }); total.innerText = '$' + totalActual().toLocaleString(); historialRender(); }
+
+
+        function abrirModal() { if (totalActual() === 0) return; modal.style.display = 'flex'; mtotal.innerText = totalActual().toLocaleString(); efectivo.value = ''; nequi.value = ''; otros.value = ''; actualizarModal(); }
+
+
+        function cerrarModal() { modal.style.display = 'none'; }
+        [efectivo, nequi, otros].forEach(i => i.addEventListener('input', actualizarModal));
+
+
+        function actualizarModal() { let t = totalActual(); let e = Number(efectivo.value || 0); let n = Number(nequi.value || 0); let o = Number(otros.value || 0); let p = e + n + o; let falt = Math.max(0, t - p); let camb = Math.max(0, p - t); pagado.innerText = p.toLocaleString(); pendiente.innerText = falt.toLocaleString(); cambio.innerText = camb.toLocaleString(); registrarBtn.disabled = p < t; }
+
+
+        function registrarVenta() { let t = totalActual(); let e = Number(efectivo.value || 0); let n = Number(nequi.value || 0); let o = Number(otros.value || 0); let cambio = Math.max(0, e + n + o - t); let efectivoReal = Math.max(0, e - cambio); ventas.push({ id: Date.now(), fecha: new Date().toLocaleString(), total: t, efectivo: efectivoReal, nequi: n, otros: o, cambio }); localStorage.setItem('ventas', JSON.stringify(ventas)); productos.forEach(p => p.cantidad = 0); cerrarModal(); render(); resumen(); }
+
+
+        function resumen() { let e = Number(localStorage.getItem('be') || 0), n = Number(localStorage.getItem('bn') || 0), o = Number(localStorage.getItem('bo') || 0); ventas.forEach(v => { e += v.efectivo; n += v.nequi; o += v.otros }); se.innerText = e.toLocaleString(); sn.innerText = n.toLocaleString(); so.innerText = o.toLocaleString(); }
+
+
+        function historialRender() { historial.innerHTML = '<h3>Historial</h3>';[...ventas].reverse().forEach(v => { let d = document.createElement('div'); d.className = 'hist'; d.innerHTML = `<b>${v.fecha}</b><br>Total $${v.total.toLocaleString()}<br>💵 ${v.efectivo.toLocaleString()} | 📱 ${v.nequi.toLocaleString()} | 🏦 ${v.otros.toLocaleString()}<br>Cambio: $${(v.cambio || 0).toLocaleString()}<br><button class='danger' onclick='eliminar(${v.id})'>Eliminar</button>`; historial.appendChild(d); }); }
+
+
+        function eliminar(id) { ventas = ventas.filter(v => v.id !== id); localStorage.setItem('ventas', JSON.stringify(ventas)); render(); resumen(); }
+
+
         function exportarCSV() {
-            let csv = 'fecha,total,efectivo,nequi,otros'; ventas.forEach(v => csv += `${v.fecha},${v.total},${v.efectivo},${v.nequi},${v.otros}`);
-            let a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = 'ventas.csv'; a.click()
-        } render(); resumen();
-        
-        
-        </script>
+            let csv = 'fecha,total,efectivo,nequi,otros,cambio';
+            ventas.forEach(v => csv += `${v.fecha},${v.total},${v.efectivo},${v.nequi},${v.otros},${v.cambio}`);
+            let a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+            a.download = 'ventas.csv'; a.click();
+        }
+        render(); resumen();
+    </script>
 </body>
 
 </html>
