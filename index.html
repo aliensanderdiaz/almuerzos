@@ -1,167 +1,191 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Productos</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Caja Restaurante</title>
+    <style>
+        * {
+            box-sizing: border-box
+        }
 
-<style>
-  body {
-    font-family: Arial;
-    margin: 0;
-    background: #f5f5f5;
-  }
+        body {
+            font-family: Arial;
+            margin: 0;
+            background: #f5f5f5;
+            padding-bottom: 140px
+        }
 
-  .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-  }
+        .header {
+            position: sticky;
+            top: 0;
+            background: #fff;
+            padding: 12px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, .1)
+        }
 
-  h1 {
-    margin: 0;
-    font-size: 22px;
-  }
+        .item,
+        .card {
+            background: #fff;
+            margin: 10px;
+            padding: 15px;
+            border-radius: 14px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, .08)
+        }
 
-  .reset-btn {
-    background: #ef4444;
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 10px;
-    font-size: 12px;
-  }
+        .item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
 
-  .lista {
-    padding: 10px;
-    padding-bottom: 100px;
-  }
+        .cantidad {
+            font-size: 24px;
+            font-weight: bold;
+            color: #16a34a
+        }
 
-  .item {
-    background: white;
-    margin-bottom: 10px;
-    padding: 15px;
-    border-radius: 15px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  }
+        .totalbox {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #fff;
+            padding: 10px;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, .1)
+        }
 
-  .nombre {
-    font-weight: bold;
-  }
+        button {
+            border: none;
+            border-radius: 10px;
+            padding: 12px;
+            font-weight: bold
+        }
 
-  .precio {
-    font-size: 12px;
-    color: gray;
-  }
+        .btn {
+            width: 100%;
+            background: #16a34a;
+            color: #fff
+        }
 
-  .cantidad {
-    font-size: 20px;
-    font-weight: bold;
-  }
+        .danger {
+            background: #dc2626;
+            color: #fff
+        }
 
-  .total-box {
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    background: #d1fae5;
-    text-align: center;
-    padding: 15px;
-  }
-
-  .total {
-    font-size: 28px;
-    font-weight: bold;
-  }
-</style>
+        .hist {
+            font-size: 13px;
+            border-top: 1px solid #eee;
+            padding-top: 8px;
+            margin-top: 8px
+        }
+    </style>
 </head>
 
 <body>
+    <div class="header">
+        <h2>🍽️ Caja Restaurante</h2>
+    </div>
+    <div class="card" id="cardBases">
+        <h3>Bases</h3>
+        <input id="be" type="number" placeholder="Base efectivo"><br><br>
+        <input id="bn" type="number" placeholder="Base Nequi"><br><br>
+        <input id="bo" type="number" placeholder="Base Otros"><br><br>
+        <button onclick="guardarBases()">Guardar bases</button>
+    </div>
+    <div id="lista"></div>
+    <div class="card">
+        <h3>Saldos esperados</h3>
+        <div>💵 Efectivo: $<span id="se">0</span></div>
+        <div>📱 Nequi: $<span id="sn">0</span></div>
+        <div>🏦 Otros: $<span id="so">0</span></div>
+    </div>
+    <div class="card"><button onclick="exportarCSV()">📥 Exportar CSV</button>
+        <h3>Historial</h3>
+        <div id="historial"></div>
+    </div>
+    <div class="totalbox">
+        <div style="text-align:center;font-size:28px;font-weight:bold" id="total">$0</div><button class="btn"
+            onclick="cobrar()">COBRAR</button>
+    </div>
+    <script>
+        const productos = [['Almuerzo', 18000], ['Almuerzo para llevar', 19000], ['Sopa', 6000], ['Sopa para llevar', 6500], ['Desechable', 500], ['Porción proteína', 11000], ['Porción arroz', 3000], ['Gaseosa personal', 4000], ['Gaseosa litro', 8000]].map(x => ({ nombre: x[0], precio: x[1], cantidad: 0 }));
+        let ventas = JSON.parse(localStorage.getItem('ventas') || '[]');
+        function guardarBases() {
+            localStorage.setItem('be', be.value || 0);
+            localStorage.setItem('bn', bn.value || 0);
+            localStorage.setItem('bo', bo.value || 0);
+            resumen()
+            document.getElementById("cardBases").style.display = "none";
+        } 
+        
+        be.value = localStorage.getItem('be') || 0;
+        bn.value = localStorage.getItem('bn') || 0;
+        bo.value = localStorage.getItem('bo') || 0;
+        function render() {
+            lista.innerHTML = '';
+            productos.forEach(p => {
+                let d = document.createElement('div');
+                d.className = 'item';
+                let s = 0;
+                d.ontouchstart = e => s = e.touches[0].clientX;
+                d.ontouchend = e => {
+                    let df = e.changedTouches[0].clientX - s;
+                    if (df > 50) p.cantidad++;
+                    if (df < -50) p.cantidad = Math.max(0, p.cantidad - 1);
+                    render()
+                };
+                d.innerHTML = '<div><b>' + p.nombre + '</b><br><small>$' + p.precio.toLocaleString() + '</small></div><div class=cantidad>' + p.cantidad + '</div>';
+                lista.appendChild(d)
+            });
+            let t = productos.reduce((a, p) => a + p.precio * p.cantidad, 0);
+            document.getElementById('total').innerText = '$' + t.toLocaleString();
+            historialR();
+        } function totalActual() { return productos.reduce((a, p) => a + p.precio * p.cantidad, 0) } function cobrar() {
+            let total = totalActual();
+            if (!total) return;
+            let e = Number(prompt('Efectivo', 0) || 0);
+            let n = Number(prompt('Nequi', 0) || 0);
+            let o = Number(prompt('Otros', 0) || 0);
+            if (e + n + o !== total) {
+                alert('La suma no coincide');
+                return;
 
-<div class="header">
-  <h1>Productos</h1>
-  <button class="reset-btn" onclick="resetear()">Reset</button>
-</div>
-
-<div class="lista" id="lista"></div>
-
-<div class="total-box">
-  <div>Total</div>
-  <div class="total" id="total">$0</div>
-</div>
-
-<script>
-const productos = [
-  { nombre: "Almuerzo", precio: 18000, cantidad: 0 },
-  { nombre: "Almuerzo para llevar", precio: 19000, cantidad: 0 },
-  { nombre: "Sopa", precio: 6000, cantidad: 0 },
-  { nombre: "Sopa para llevar", precio: 6500, cantidad: 0 },
-  { nombre: "Desechable", precio: 500, cantidad: 0 },
-  { nombre: "Porción proteína", precio: 11000, cantidad: 0 },
-  { nombre: "Porción arroz", precio: 3000, cantidad: 0 },
-  { nombre: "Gaseosa personal", precio: 4000, cantidad: 0 },
-  { nombre: "Gaseosa litro", precio: 8000, cantidad: 0 }
-];
-
-const lista = document.getElementById("lista");
-
-function render() {
-  lista.innerHTML = "";
-
-  productos.forEach((p) => {
-    const item = document.createElement("div");
-    item.className = "item";
-
-    let startX = 0;
-
-    item.addEventListener("touchstart", (e) => {
-      startX = e.touches[0].clientX;
-    });
-
-    item.addEventListener("touchend", (e) => {
-      const endX = e.changedTouches[0].clientX;
-      const diff = endX - startX;
-
-      if (diff > 50) {
-        p.cantidad++;
-      } else if (diff < -50) {
-        p.cantidad--;
-        if (p.cantidad < 0) p.cantidad = 0;
-      }
-
-      render();
-    });
-
-    item.innerHTML = `
-      <div>
-        <div class="nombre">${p.nombre}</div>
-        <div class="precio">$${p.precio}</div>
-      </div>
-      <div class="cantidad">${p.cantidad}</div>
-    `;
-
-    lista.appendChild(item);
-  });
-
-  actualizarTotal();
-}
-
-function actualizarTotal() {
-  let total = 0;
-  productos.forEach(p => total += p.precio * p.cantidad);
-  document.getElementById("total").innerText = "$" + total;
-}
-
-function resetear() {
-  productos.forEach(p => p.cantidad = 0);
-  render();
-}
-
-render();
-</script>
-
+            } ventas.push({ id: Date.now(), fecha: new Date().toLocaleString(), total, efectivo: e, nequi: n, otros: o });
+            localStorage.setItem('ventas', JSON.stringify(ventas));
+            productos.forEach(p => p.cantidad = 0);
+            render();
+            resumen()
+        } function resumen() {
+            let e = Number(localStorage.getItem('be') || 0), n = Number(localStorage.getItem('bn') || 0), o = Number(localStorage.getItem('bo') || 0);
+            ventas.forEach(v => {
+                e += v.efectivo;
+                n += v.nequi;
+                o += v.otros
+            });
+            se.innerText = e.toLocaleString();
+            sn.innerText = n.toLocaleString();
+            so.innerText = o.toLocaleString()
+        } function historialR() {
+            historial.innerHTML = '';[...ventas].reverse().forEach(v => {
+                let d = document.createElement('div');
+                d.className = 'hist';
+                d.innerHTML = '<b>' + v.fecha + '</b><br>Total $' + v.total.toLocaleString() + '<br>💵 ' + v.efectivo + ' | 📱 ' + v.nequi + ' | 🏦 ' + v.otros + '<br><button class=danger onclick="eliminar(' + v.id + ')">Eliminar</button>';
+                historial.appendChild(d)
+            })
+        } function eliminar(id) {
+            ventas = ventas.filter(v => v.id !== id);
+            localStorage.setItem('ventas', JSON.stringify(ventas));
+            render();
+            resumen()
+        } function exportarCSV() {
+            let csv = 'fecha,total,efectivo,nequi,otros'; ventas.forEach(v => csv += `${v.fecha},${v.total},${v.efectivo},${v.nequi},${v.otros}`);
+            let a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = 'ventas.csv'; a.click()
+        } render(); resumen();
+        
+        
+        </script>
 </body>
+
 </html>
