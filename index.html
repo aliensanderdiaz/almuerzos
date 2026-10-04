@@ -142,12 +142,18 @@
             let t = productos.reduce((a, p) => a + p.precio * p.cantidad, 0);
             document.getElementById('total').innerText = '$' + t.toLocaleString();
             historialR();
-        } function totalActual() { return productos.reduce((a, p) => a + p.precio * p.cantidad, 0) } function cobrar() {
+        }
+        
+        
+        function totalActual() { return productos.reduce((a, p) => a + p.precio * p.cantidad, 0) }
+        
+        
+        function cobrar() {
             let total = totalActual();
             if (!total) return;
-            let e = Number(prompt('Efectivo', 0) || 0);
-            let n = Number(prompt('Nequi', 0) || 0);
-            let o = Number(prompt('Otros', 0) || 0);
+            let e = Number(prompt(`TOTAL: $${total.toLocaleString()}\n\nIngrese efectivo:`, 0) || 0);
+            let n = Number(prompt(`TOTAL: $${total.toLocaleString()}\n\nIngrese Nequi:`, 0) || 0);
+            let o = Number(prompt(`TOTAL: $${total.toLocaleString()}\n\nIngrese Otros:`, 0) || 0);
             if (e + n + o !== total) {
                 alert('La suma no coincide');
                 return;
@@ -157,7 +163,10 @@
             productos.forEach(p => p.cantidad = 0);
             render();
             resumen()
-        } function resumen() {
+        }
+        
+        
+        function resumen() {
             let e = Number(localStorage.getItem('be') || 0), n = Number(localStorage.getItem('bn') || 0), o = Number(localStorage.getItem('bo') || 0);
             ventas.forEach(v => {
                 e += v.efectivo;
@@ -167,19 +176,28 @@
             se.innerText = e.toLocaleString();
             sn.innerText = n.toLocaleString();
             so.innerText = o.toLocaleString()
-        } function historialR() {
+        }
+        
+        
+        function historialR() {
             historial.innerHTML = '';[...ventas].reverse().forEach(v => {
                 let d = document.createElement('div');
                 d.className = 'hist';
                 d.innerHTML = '<b>' + v.fecha + '</b><br>Total $' + v.total.toLocaleString() + '<br>💵 ' + v.efectivo + ' | 📱 ' + v.nequi + ' | 🏦 ' + v.otros + '<br><button class=danger onclick="eliminar(' + v.id + ')">Eliminar</button>';
                 historial.appendChild(d)
             })
-        } function eliminar(id) {
+        }
+        
+        
+        function eliminar(id) {
             ventas = ventas.filter(v => v.id !== id);
             localStorage.setItem('ventas', JSON.stringify(ventas));
             render();
             resumen()
-        } function exportarCSV() {
+        }
+        
+        
+        function exportarCSV() {
             let csv = 'fecha,total,efectivo,nequi,otros'; ventas.forEach(v => csv += `${v.fecha},${v.total},${v.efectivo},${v.nequi},${v.otros}`);
             let a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = 'ventas.csv'; a.click()
         } render(); resumen();
